@@ -12,7 +12,7 @@ TORTOISE_ORM = {
                 "app.models.role",
                 "app.models.permission",
                 "aerich.models"
-            ],
+            ], 
             "default_connection": "default",
         }
     }

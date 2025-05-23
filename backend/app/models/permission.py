@@ -16,10 +16,9 @@ class Permission(BaseModel):
     updated_at = fields.DatetimeField(auto_now=True, description="更新时间")
     roles = fields.ManyToManyField(
         'models.Role',
-        related_name='permissions',
+        related_name='permission_roles',  # 修改这里
         description="关联角色"
     )
-
     class Meta:
         table = "permissions"
         table_description = "权限表"

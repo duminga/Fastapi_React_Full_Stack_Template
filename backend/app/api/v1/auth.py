@@ -1,13 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.schemas.user import UserCreate, UserResponse, Token, UserLogin
 from app.services.auth_service import AuthService
 from app.utils.log_server import logServer
+from pydantic import BaseModel
 
 logger = logServer().run()
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+
+class RefreshTokenRequest(BaseModel):
+    """
+    刷新令牌请求模型
+    """
+    refresh_token: str
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate):
@@ -38,18 +45,46 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     @exception: HTTPException 登录失败异常
     """
     try:
-        access_token, expires_in = await AuthService.login(
+        # 从表单数据中获取 remember 参数
+        remember = form_data.scopes and "remember" in form_data.scopes
+        
+        access_token, refresh_token, expires_in = await AuthService.login(
             username=form_data.username,
-            password=form_data.password
+            password=form_data.password,
+            remember=remember
         )
         return {
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "expires_in": expires_in
         }
     except Exception as e:
         logger.error(f"登录接口异常: {str(e)}")
         raise
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(request: RefreshTokenRequest):
+    """
+    刷新访问令牌
+    @param: request 刷新令牌请求
+    @return: Token 新的访问令牌
+    """
+    try:
+        access_token, new_refresh_token, expires_in = await AuthService.refresh_access_token(request.refresh_token)
+        return {
+            "access_token": access_token,
+            "refresh_token": new_refresh_token,
+            "token_type": "bearer",
+            "expires_in": expires_in
+        }
+    except Exception as e:
+        logger.error(f"刷新令牌失败: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="无效的刷新令牌",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
 @router.post("/logout")
 async def logout(token: str = Depends(oauth2_scheme)):
@@ -60,8 +95,13 @@ async def logout(token: str = Depends(oauth2_scheme)):
     @exception: HTTPException 登出失败异常
     """
     try:
-        # TODO: 实现令牌黑名单机制
-        return {"message": "登出成功"}
+        success = await AuthService.logout(token)
+        if success:
+            return {"message": "登出成功"}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="登出失败"
+        )
     except Exception as e:
         logger.error(f"登出接口异常: {str(e)}")
         raise HTTPException(

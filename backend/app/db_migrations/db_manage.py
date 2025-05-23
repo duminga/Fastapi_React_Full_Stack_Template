@@ -49,8 +49,9 @@ async def create_initial_data():
     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
     
     super_admin = await User.create(
+        username=settings.FIRST_SUPERUSER,  # 使用邮箱前缀作为用户名
         email=settings.FIRST_SUPERUSER,
-        password=hashed.decode('utf-8'),
+        hashed_password=hashed.decode('utf-8'),
         is_active=True,
         is_superuser=True
     )

@@ -16,12 +16,12 @@ class Role(BaseModel):
     updated_at = fields.DatetimeField(auto_now=True, description="更新时间")
     users = fields.ManyToManyField(
         'models.User',
-        related_name='roles',
+        related_name='role_users',  # 修改这里
         description="关联用户"
     )
     permissions = fields.ManyToManyField(
         'models.Permission',
-        related_name='roles',
+        related_name='role_permissions',  # 修改这里
         description="关联权限"
     )
 

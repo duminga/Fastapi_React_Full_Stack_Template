@@ -32,7 +32,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     logger.warning(f"参数验证失败: {str(errors)}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=error_response.model_dump()
+        content=error_response.dict()
     )
 
 async def api_exception_handler(request: Request, exc: BaseAPIException):
@@ -51,7 +51,7 @@ async def api_exception_handler(request: Request, exc: BaseAPIException):
     logger.error(f"API异常: {exc.message}, 详情: {exc.detail}")
     return JSONResponse(
         status_code=exc.status_code,
-        content=error_response.model_dump(),
+        content=error_response.dict(),
         headers=exc.headers
     )
 
@@ -71,7 +71,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     logger.error(f"HTTP异常: {exc.detail}")
     return JSONResponse(
         status_code=exc.status_code,
-        content=error_response.model_dump(),
+        content=error_response.dict(),
         headers=exc.headers
     )
 
@@ -91,5 +91,5 @@ async def general_exception_handler(request: Request, exc: Exception):
     logger.error(f"未处理的异常: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.model_dump()
+        content=error_response.dict()
     ) 

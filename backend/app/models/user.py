@@ -15,7 +15,7 @@ class User(BaseModel):
     is_superuser = fields.BooleanField(default=False, description="是否超级管理员")
     roles = fields.ManyToManyField(
         'models.Role',
-        related_name='users',
+        related_name='user_roles',  # 修改这里
         description="关联角色"
     )
 

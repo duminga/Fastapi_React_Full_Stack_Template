@@ -14,6 +14,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.exceptions import HTTPException
 from app.middlewares.rbac_middleware import RBACMiddleware
 from app.utils.log_server import logServer
+from app.tortoise_config import init_db, close_db
+from app.utils.redis import RedisClient
 
 logger = logServer().run()
 
@@ -40,9 +42,6 @@ app.add_middleware(RBACMiddleware)
 # 注册路由
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-
-
-
 # 替换 uvicorn 的 handler，让uvicorn日志也走自定义日志组件
 uvicorn_logger = py_logging.getLogger("uvicorn")
 uvicorn_access_logger = py_logging.getLogger("uvicorn.access")
@@ -57,6 +56,13 @@ async def startup_event():
     """
     应用启动事件
     """
+    # 初始化数据库连接
+    await init_db()
+    
+    # 初始化Redis连接
+    redis_client = RedisClient()
+    await redis_client.init()
+    
     # 输出数据库配置
     logger.debug(f"数据库配置:{settings.DATABASE_URL}")
     logger.debug(f"Tortoise ORM URL:{settings.TORTOISE_ORM_DATABASE_URL}")
@@ -75,4 +81,11 @@ async def shutdown_event():
     """
     应用关闭事件
     """
+    # 关闭数据库连接
+    await close_db()
+    
+    # 关闭Redis连接
+    redis_client = RedisClient()
+    await redis_client.close()
+    
     logger.info("应用关闭完成")

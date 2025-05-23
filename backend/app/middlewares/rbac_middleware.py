@@ -13,7 +13,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
     """
     RBAC权限校验中间件
     """
-    def __init__(self, app: Callable, required_permissions: Optional[List[str]] = None):
+    def __init__(self, app, required_permissions: Optional[List[str]] = None):
         """
         初始化中间件
         @param: app ASGI应用
@@ -22,7 +22,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.required_permissions = required_permissions or []
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Callable):
         """
         中间件处理函数
         @param: request 请求对象
@@ -32,32 +32,39 @@ class RBACMiddleware(BaseHTTPMiddleware):
         @exception: PermissionDeniedException 权限不足异常
         """
         try:
-            # 获取当前用户
-            user = request.state.user
-            if not user:
-                raise AuthenticationException(detail="未认证")
+            # 检查是否是认证相关的路径
+            if request.url.path.startswith("/api/v1/auth"):
+                return await call_next(request)
 
-            # 如果用户是超级管理员，直接放行
+            # 获取用户信息
+            user = getattr(request.state, "user", None)
+            if not user:
+                # 如果没有用户信息，直接放行，让后续的权限检查处理
+                return await call_next(request)
+
+            # 检查用户权限
+            if not user.is_active:
+                raise AuthenticationException(detail="用户已被禁用")
+
+            # 如果是超级用户，直接放行
             if user.is_superuser:
                 return await call_next(request)
 
-            # 获取用户角色
-            roles = await Role.filter(users__id=user.id).prefetch_related('permissions')
-            if not roles:
-                raise PermissionException(detail="用户没有分配角色")
-
-            # 获取用户所有权限
-            user_permissions = set()
+            # 获取用户角色和权限
+            roles = await user.roles.all()
+            permissions = set()
             for role in roles:
-                permissions = await role.permissions.all()
-                user_permissions.update(p.code for p in permissions)
+                role_permissions = await role.permissions.all()
+                permissions.update(p.code for p in role_permissions)
+
+            # 将权限信息添加到请求状态中
+            request.state.permissions = permissions
 
             # 检查是否有所需权限
             if self.required_permissions:
-                if not any(perm in user_permissions for perm in self.required_permissions):
+                if not any(perm in permissions for perm in self.required_permissions):
                     raise PermissionException(detail="权限不足")
 
-            # 继续处理请求
             return await call_next(request)
 
         except AuthenticationException as e:
@@ -76,7 +83,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
             logger.error(f"RBAC中间件处理失败: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="服务器内部错误"
+                detail="权限检查失败"
             )
 
 def require_permissions(*permissions: str):
