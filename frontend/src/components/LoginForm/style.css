@@ -74,7 +74,7 @@
 }
 
 .login-form-title {
-    color: #ff85c0;
+    color: #e98492;
     font-weight: bold;
 }
 
@@ -90,18 +90,18 @@
 
 .login-form-button {
     width: 100%;
-    background-color: #ff85c0;
-    border-color: #ff85c0;
+    background-color: #e98492;
+    border-color: #e98492;
 }
 
 .login-form-button:hover {
-    background-color: #ff6eb4 !important;
-    border-color: #ff6eb4 !important;
+    background-color: #e98492 !important;
+    border-color: #e98492 !important;
 }
 
 .login-form-button:focus {
-    background-color: #ff6eb4 !important;
-    border-color: #ff6eb4 !important;
+    background-color: #e98492 !important;
+    border-color: #e98492 !important;
 }
 
 .login-form-forgot {
