@@ -19,11 +19,19 @@ TORTOISE_ORM = {
 }
 
 async def init_db():
-    """初始化数据库连接"""
+    """
+    初始化数据库连接
+    @return: None
+    @exception: Exception 数据库连接异常
+    """
     await Tortoise.init(config=TORTOISE_ORM)
     # 创建数据库表
     await Tortoise.generate_schemas()
 
 async def close_db():
-    """关闭数据库连接"""
+    """
+    关闭数据库连接
+    @return: None
+    @exception: Exception 关闭连接异常
+    """
     await Tortoise.close_connections() 

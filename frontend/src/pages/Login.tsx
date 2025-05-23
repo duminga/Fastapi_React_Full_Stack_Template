@@ -6,6 +6,12 @@ import type { LoginFormValues } from '@/components/LoginForm/types'
 const Login: React.FC = () => {
     const { login } = useAuth()
 
+    /**
+     * 处理登录表单提交
+     * @param: values 登录表单值
+     * @return: Promise<void>
+     * @exception: Error 登录失败时抛出错误
+     */
     const handleLogin = async (values: LoginFormValues) => {
         try {
             await login({

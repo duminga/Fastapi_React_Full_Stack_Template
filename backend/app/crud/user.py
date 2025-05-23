@@ -11,6 +11,7 @@ async def get_user_by_id(user_id: int) -> Optional[User]:
     @param: user_id 用户ID
     @return: Optional[User] 用户对象或None
     @exception: NotFoundException 用户不存在异常
+    @exception: ServerException 服务器内部错误
     """
     try:
         user = await User.get_or_none(id=user_id)

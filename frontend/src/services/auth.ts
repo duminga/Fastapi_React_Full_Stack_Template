@@ -21,6 +21,12 @@ export interface UserInfo {
     is_superuser: boolean
 }
 
+/**
+ * 用户登录
+ * @param: params 登录参数，包含用户名、密码和是否记住登录
+ * @return: Promise<LoginResult> 登录结果，包含访问令牌和刷新令牌
+ * @exception: Error 登录失败时抛出错误
+ */
 export async function login(params: LoginParams): Promise<LoginResult> {
     const formData = new URLSearchParams();
     formData.append('username', params.username);
@@ -37,6 +43,12 @@ export async function login(params: LoginParams): Promise<LoginResult> {
     return response as unknown as LoginResult;
 }
 
+/**
+ * 刷新访问令牌
+ * @param: refreshToken 刷新令牌
+ * @return: Promise<LoginResult> 新的访问令牌和刷新令牌
+ * @exception: Error 刷新令牌失败时抛出错误
+ */
 export async function refreshToken(refreshToken: string): Promise<LoginResult> {
     const response = await request.post<LoginResult>('/auth/refresh', {
         refresh_token: refreshToken
@@ -48,10 +60,20 @@ export async function refreshToken(refreshToken: string): Promise<LoginResult> {
     return response as unknown as LoginResult;
 }
 
+/**
+ * 用户登出
+ * @return: Promise<void> 登出结果
+ * @exception: Error 登出失败时抛出错误
+ */
 export async function logout(): Promise<void> {
     return request.post('/auth/logout')
 }
 
+/**
+ * 获取当前用户信息
+ * @return: Promise<UserInfo> 用户信息
+ * @exception: Error 获取用户信息失败时抛出错误
+ */
 export async function getUserInfo(): Promise<UserInfo> {
     const response = await request.get<UserInfo>('/users/me')
     return response as unknown as UserInfo

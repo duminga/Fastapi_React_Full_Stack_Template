@@ -13,6 +13,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+/**
+ * 使用认证上下文
+ * @return: AuthContextType 认证上下文对象
+ * @exception: Error 在AuthProvider外部使用时抛出错误
+ */
 export const useAuth = () => {
     const context = useContext(AuthContext)
     if (!context) {
@@ -26,7 +31,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
-    // 检查并刷新令牌
+    /**
+     * 检查并刷新令牌
+     * @return: Promise<void>
+     * @exception: Error 刷新令牌失败时抛出错误
+     */
     const checkAndRefreshToken = async () => {
         const refreshTokenStr = localStorage.getItem('refresh_token')
         const accessTokenStr = localStorage.getItem('access_token')
@@ -84,7 +93,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         checkAndRefreshToken()
     }, [])
 
-    // 登录
+    /**
+     * 用户登录
+     * @param: params 登录参数
+     * @return: Promise<void>
+     * @exception: Error 登录失败时抛出错误
+     */
     const login = async (params: LoginParams) => {
         try {
             const result = await loginApi(params)
@@ -103,7 +117,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }
 
-    // 登出
+    /**
+     * 用户登出
+     * @return: Promise<void>
+     * @exception: Error 登出失败时抛出错误
+     */
     const logout = async () => {
         try {
             await logoutApi()

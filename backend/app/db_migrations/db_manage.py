@@ -8,12 +8,20 @@ from app.models.permission import Permission
 from app.tortoise_config import TORTOISE_ORM
 
 async def init_db():
-    """初始化数据库连接"""
+    """
+    初始化数据库连接
+    @return: None
+    @exception: Exception 数据库连接异常
+    """
     await Tortoise.init(config=TORTOISE_ORM)
     await Tortoise.generate_schemas()
 
 async def create_initial_data():
-    """创建初始数据"""
+    """
+    创建初始数据
+    @return: None
+    @exception: Exception 创建数据异常
+    """
     # 创建超级管理员角色
     super_admin_role = await Role.create(
         name="超级管理员",

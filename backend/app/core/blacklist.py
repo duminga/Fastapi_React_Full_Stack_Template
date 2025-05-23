@@ -12,7 +12,7 @@ class TokenBlacklist:
     """
     def __init__(self):
         """
-        初始化黑名单管理器
+        初始化令牌黑名单
         """
         self.redis = RedisClient()
         self.prefix = "token_blacklist:"
